@@ -2,4 +2,11 @@
     <string name="app_name">Test_Navigation</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="google_maps_key">AIzaSyAIu51cjkjNHL3NVaZQafYaYR6l0y8G-os</string>
+
+    <string name="txt_loading">Загрузка данных...</string>
+    <string name="dialog_header_err">Данные о местоположении отсутвуют</string>
+    <string name="dialog_message_err">Пожалуйста разрешите доступ к Вашему местоположению для нормальной работы приложения.</string>
+    <string name="dialog_btn_positive_err">Настройки</string>
+    <string name="dialog_btn_negative_err">Отмена</string>
+
 </resources>
