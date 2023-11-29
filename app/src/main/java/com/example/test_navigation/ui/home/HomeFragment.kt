@@ -31,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
@@ -43,6 +44,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationManager: LocationManager
     private lateinit var userMarker: Marker
     private lateinit var customMarkerOptions: MarkerOptions
+    private var lastLocation: Location? = null
+    private var speed: Double = 0.0
 
     @SuppressLint("MissingInflatedId")
     override fun onCreateView(
@@ -68,6 +71,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             )
             != PackageManager.PERMISSION_GRANTED
         ) {
+            showLocationSettingsDialog()
             return
         }
         val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
@@ -107,6 +111,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             updateLocationUI(location)
+            speedDefinition(location)
         }
 
         override fun onProviderEnabled(provider: String) {
@@ -123,9 +128,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
         customMarkerOptions = MarkerOptions().position(latLng)
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(userMarker.position))
-        val rotation = location.bearing
-        userMarker.rotation = (rotation-45)
-        Toast.makeText(context, rotation.toString(), Toast.LENGTH_SHORT).show()
     }
     private fun showLocationSettingsDialog() {
         val builder = AlertDialog.Builder(requireContext())
@@ -142,6 +144,27 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             }
             .create()
             .show()
+    }
+    private fun speedDefinition(location: Location){
+        if (lastLocation != null) {
+            val timeDiff = (location.time - lastLocation!!.time) / 1000.0
+            val distance = lastLocation?.distanceTo(location)
+            if(distance != null) speed = distance/timeDiff
+            lastLocation = location
+            if(speed > 3) {
+                googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(CameraPosition.Builder()
+                    .target(googleMap.cameraPosition.target)
+                    .zoom(googleMap.cameraPosition.zoom)
+                    .bearing(lastLocation!!.bearing)
+                    .tilt(googleMap.cameraPosition.tilt)
+                    .build()))
+            }else{
+                val rotation = location.bearing
+                userMarker.rotation = (rotation-45)
+            }
+        }else{
+            lastLocation = location
+        }
     }
 
     override fun onResume() {
